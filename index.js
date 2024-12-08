@@ -32,9 +32,11 @@ const findRepo = debounce(function() {
       const listItem = document.createElement('li');
       const deleteBtn = document.createElement('button');
       deleteBtn.classList.add('delete_btn');
-      deleteBtn.addEventListener('click', (e) => {
-        e.target.closest('li').remove();
-      })
+      function deleteListItem(event) {
+        event.target.closest('li').remove();
+        this.removeEventListener('click', deleteListItem)
+      }
+      deleteBtn.addEventListener('click', deleteListItem)
       for (key in item) {
         const info = document.createElement('span')
         info.classList.add('list-item-info');
