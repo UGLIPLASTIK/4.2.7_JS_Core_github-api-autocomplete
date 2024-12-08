@@ -11,42 +11,42 @@ const debounce = function(fn, ms) {
   }
 }
 
+const createListItem = function(item, where) {
+  if (where === 'drop-list') {
+    const listItem = document.createElement('li');
+    listItem.classList.add('drop-list__item');
+    listItem.textContent = item.language;
+    listItem.addEventListener('click', (e) => {
+      itemCollection.insertAdjacentElement('beforeend', createListItem(item));
+      input.value = '';
+      dropList.innerHTML = '';
+    })
+    return listItem;
+  } else {
+    const listItem = document.createElement('li');
+    const deleteBtn = document.createElement('button');
+    deleteBtn.classList.add('delete_btn');
+    function deleteListItem(event) {
+      event.target.closest('li').remove();
+      this.removeEventListener('click', deleteListItem)
+    }
+    deleteBtn.addEventListener('click', deleteListItem)
+    for (key in item) {
+      const info = document.createElement('span')
+      info.classList.add('list-item-info');
+      info.textContent = `${key}: ${item[key]}`;
+      listItem.insertAdjacentElement('beforeend', info);
+    }
+    listItem.insertAdjacentElement('beforeend', deleteBtn);
+    return listItem;
+  }
+}
+
 const findRepo = debounce(function() {
   let searchWord = undefined;
-  if (input.value.length === 0) return
+  if (input.value.length === 0) return;
   searchWord = input.value.trim();
-  if(searchWord.length === 0) return
-
-  const createListItem = function(item, where) {
-    if (where === 'drop-list') {
-      const listItem = document.createElement('li');
-      listItem.classList.add('drop-list__item');
-      listItem.textContent = item.language;
-      listItem.addEventListener('click', (e) => {
-        itemCollection.insertAdjacentElement('beforeend', createListItem(item));
-        input.value = '';
-        dropList.innerHTML = '';
-      })
-      return listItem;
-    } else {
-      const listItem = document.createElement('li');
-      const deleteBtn = document.createElement('button');
-      deleteBtn.classList.add('delete_btn');
-      function deleteListItem(event) {
-        event.target.closest('li').remove();
-        this.removeEventListener('click', deleteListItem)
-      }
-      deleteBtn.addEventListener('click', deleteListItem)
-      for (key in item) {
-        const info = document.createElement('span')
-        info.classList.add('list-item-info');
-        info.textContent = `${key}: ${item[key]}`;
-        listItem.insertAdjacentElement('beforeend', info);
-      }
-      listItem.insertAdjacentElement('beforeend', deleteBtn);
-      return listItem;
-    }
-  }
+  if(searchWord.length === 0) return;
 
   fetch('https://api.github.com/search/repositories?q=Q&per_page=10')
   .then(response => response.json())
@@ -54,13 +54,14 @@ const findRepo = debounce(function() {
     const allRepo = data.items.reduce((acc, item) => {
       const repo = {}
       const { language, stargazers_count } = item;
-      const { login } = item.owner
-      repo.language = language
-      repo.stars = stargazers_count
-      repo.name = login
+      const { login } = item.owner;
+      repo.language = language;
+      repo.stars = stargazers_count;
+      repo.name = login;
       acc.push(repo);
-      return acc
+      return acc;
     }, [])
+    
     allRepo.filter(el => el.language.toLowerCase().startsWith(searchWord)).slice(0, 5).forEach(element => {
       dropList.insertAdjacentElement('beforeend', createListItem(element, 'drop-list'))
     });
@@ -69,5 +70,5 @@ const findRepo = debounce(function() {
 
 input.addEventListener('keyup', (e) => {
   dropList.innerHTML = '';
-  findRepo()
+  findRepo();
 })
